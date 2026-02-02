@@ -1,0 +1,11 @@
+# flet.yaml
+app:
+  title: 小鹰提货
+  package_name: com.eagle.delivery
+  version: 1.0.0
+  build_number: 1
+
+android:
+  # 这里可以自定义安卓相关的配置
+  permissions:
+    - INTERNET
