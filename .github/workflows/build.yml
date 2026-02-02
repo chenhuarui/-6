@@ -1,8 +1,8 @@
 name: Build Android APK
 on:
   push:
-    branches: [ main ] # 只有推送到 main 分支时才触发打包
-  workflow_dispatch:   # 允许你在 GitHub 页面手动点击按钮开始打包
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,20 +11,42 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          # 构建提示词：Flet 0.25+ 建议使用最新的 Flutter
+          flutter-version: '3.24.0' 
+
+      - name: Install Python and Flet
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install Flet
+      - name: Install dependencies
         run: |
           pip install flet
+          # 如果你的 requirements.txt 还有别的库，也装上
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Accept Android Licenses
+        run: |
+          # 这一步是为了防止 EOFError，自动同意所有安卓授权
+          yes | sdkmanager --licenses || true
 
       - name: Build Android APK
         run: |
-          # --project 这里可以写你的中文应用名
-          # --product 这里写生成的包名
-          flet build apk --project "小鹰提货" --product "LittleEagleApp"
+          # 使用 --verbose 方便看到具体的报错日志，增加 --yes 自动确认
+          flet build apk --project "小鹰提货" --org "com.yourname.app"
+        env:
+          # 让 Flet 知道这是在 CI 环境中运行，减少交互
+          CI: true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
