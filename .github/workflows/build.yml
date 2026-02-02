@@ -1,0 +1,33 @@
+name: Build Android APK
+on:
+  push:
+    branches: [ main ] # 只有推送到 main 分支时才触发打包
+  workflow_dispatch:   # 允许你在 GitHub 页面手动点击按钮开始打包
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Flet
+        run: |
+          pip install flet
+
+      - name: Build Android APK
+        run: |
+          # --project 这里可以写你的中文应用名
+          # --product 这里写生成的包名
+          flet build apk --project "小鹰提货" --product "LittleEagleApp"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/apk/*.apk
